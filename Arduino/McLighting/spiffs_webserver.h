@@ -129,31 +129,31 @@ void handleFileCreate() {
 	path = String();
 }
 
-void handleFileList() {
-	if (!server.hasArg("dir")) {
-		server.send(500, "text/plain", "BAD ARGS");
-		return;
-	}
+// void handleFileList() {
+// 	if (!server.hasArg("dir")) {
+// 		server.send(500, "text/plain", "BAD ARGS");
+// 		return;
+// 	}
 	
-	String path = server.arg("dir");
-	DBG_OUTPUT_PORT.println("handleFileList: " + path);
-	Dir dir = SPIFFS.openDir(path);
-	path = String();
+// 	String path = server.arg("dir");
+// 	DBG_OUTPUT_PORT.println("handleFileList: " + path);
+// 	Dir dir = SPIFFS.openDir(path);
+// 	path = String();
 	
-	String output = "[";
-	while (dir.next()) {
-		File entry = dir.openFile("r");
-		if (output != "[") output += ',';
-		bool isDir = false;
-		output += "{\"type\":\"";
-		output += (isDir) ? "dir" : "file";
-		output += "\",\"name\":\"";
-		output += String(entry.name()).substring(1);
-		output += "\"}";
-		entry.close();
-	}
+// 	String output = "[";
+// 	while (dir.next()) {
+// 		File entry = dir.openFile("r");
+// 		if (output != "[") output += ',';
+// 		bool isDir = false;
+// 		output += "{\"type\":\"";
+// 		output += (isDir) ? "dir" : "file";
+// 		output += "\",\"name\":\"";
+// 		output += String(entry.name()).substring(1);
+// 		output += "\"}";
+// 		entry.close();
+// 	}
 	
-	output += "]";
-  server.sendHeader("Access-Control-Allow-Origin", "*");
-	server.send(200, "text/json", output);
-}
+// 	output += "]";
+//   server.sendHeader("Access-Control-Allow-Origin", "*");
+// 	server.send(200, "text/json", output);
+// }

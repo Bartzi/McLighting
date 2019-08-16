@@ -3,16 +3,16 @@
 // ***************************************************************************
 // Load libraries for: WebServer / WiFiManager / WebSockets
 // ***************************************************************************
-#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+#include <Wifi.h>          //https://github.com/esp8266/Arduino
 
 // needed for library WiFiManager
 #include <DNSServer.h>
-#include <ESP8266WebServer.h>
+#include <WebServer.h>
 #include <WiFiManager.h>        //https://github.com/tzapu/WiFiManager
 
 #include <WiFiClient.h>
-#include <ESP8266mDNS.h>
-#include <FS.h>
+#include <ESPmDNS.h>
+#include <SPIFFS.h>
 #include <EEPROM.h>
 
 #include <WebSockets.h>           //https://github.com/Links2004/arduinoWebSockets
@@ -24,6 +24,7 @@
   #include <ArduinoOTA.h>
 #endif
 
+#include <ArduinoJson.h>        //https://github.com/bblanchon/ArduinoJson
 //SPIFFS Save
 #if !defined(ENABLE_HOMEASSISTANT) and defined(ENABLE_STATE_SAVE_SPIFFS)
   #include <ArduinoJson.h>        //https://github.com/bblanchon/ArduinoJson
@@ -71,7 +72,7 @@
 // ***************************************************************************
 // Instanciate HTTP(80) / WebSockets(81) Server
 // ***************************************************************************
-ESP8266WebServer server(80);
+WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
 
 #ifdef HTTP_OTA
@@ -328,21 +329,21 @@ void setup() {
   // ***************************************************************************
   // Setup: SPIFFS
   // ***************************************************************************
-  SPIFFS.begin();
-  {
-    Dir dir = SPIFFS.openDir("/");
-    while (dir.next()) {
-      String fileName = dir.fileName();
-      size_t fileSize = dir.fileSize();
-      DBG_OUTPUT_PORT.printf("FS File: %s, size: %s\n", fileName.c_str(), formatBytes(fileSize).c_str());
-    }
+  SPIFFS.begin(false, "/");
+  // {
+  //   Dir dir = SPIFFS.openDir("/");
+  //   while (dir.next()) {
+  //     String fileName = dir.fileName();
+  //     size_t fileSize = dir.fileSize();
+  //     DBG_OUTPUT_PORT.printf("FS File: %s, size: %s\n", fileName.c_str(), formatBytes(fileSize).c_str());
+  //   }
 
-    FSInfo fs_info;
-    SPIFFS.info(fs_info);
-    DBG_OUTPUT_PORT.printf("FS Usage: %d/%d bytes\n\n", fs_info.usedBytes, fs_info.totalBytes);
-  }
+  //   FSInfo fs_info;
+  //   SPIFFS.info(fs_info);
+  //   DBG_OUTPUT_PORT.printf("FS Usage: %d/%d bytes\n\n", fs_info.usedBytes, fs_info.totalBytes);
+  // }
 
-  wifi_station_set_hostname(const_cast<char*>(HOSTNAME));
+  WiFi.setHostname(const_cast<char*>(HOSTNAME));
 
   // ***************************************************************************
   // Setup: Neopixel
@@ -406,7 +407,7 @@ void setup() {
   wifiManager.addParameter(&custom_strip_size);
   wifiManager.addParameter(&custom_led_pin);
 
-  WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  // WiFi.setSleepMode(WIFI_NONE_SLEEP);
   
   // Uncomment if you want to restart ESP8266 if it cannot connect to WiFi.
   // Value in brackets is in seconds that WiFiManger waits until restart
@@ -427,7 +428,7 @@ void setup() {
   if (!wifiManager.autoConnect(HOSTNAME)) {
     DBG_OUTPUT_PORT.println("failed to connect and hit timeout");
     //reset and try again, or maybe put it to deep sleep
-    ESP.reset();  //Will be removed when upgrading to standalone offline McLightingUI version
+    ESP.restart();  //Will be removed when upgrading to standalone offline McLightingUI version
     delay(1000);  //Will be removed when upgrading to standalone offline McLightingUI version
   }
 
@@ -582,8 +583,8 @@ void setup() {
   // ***************************************************************************
   // Setup: SPIFFS Webserver handler
   // ***************************************************************************
-  //list directory
-  server.on("/list", HTTP_GET, handleFileList);
+  // //list directory
+  // server.on("/list", HTTP_GET, handleFileList);
   //create file
   server.on("/edit", HTTP_PUT, handleFileCreate);
   //delete file
@@ -605,12 +606,9 @@ void setup() {
     json["sketch_size"] = ESP.getSketchSize();
     json["free_sketch_space"] = ESP.getFreeSketchSpace();
     json["flash_chip_size"] = ESP.getFlashChipSize();
-    json["flash_chip_real_size"] = ESP.getFlashChipRealSize();
     json["flash_chip_speed"] = ESP.getFlashChipSpeed();
     json["sdk_version"] = ESP.getSdkVersion();
-    json["core_version"] = ESP.getCoreVersion();
     json["cpu_freq"] = ESP.getCpuFreqMHz();
-    json["chip_id"] = ESP.getFlashChipId();
     #if defined(USE_WS2812FX_DMA)
       json["animation_lib"] = "WS2812FX_DMA";
       json["pin"] = 3;

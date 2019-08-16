@@ -1290,6 +1290,7 @@ void checkForRequests() {
   }
 #endif
 
+bool updateFS = false;
 #ifdef ENABLE_STATE_SAVE_SPIFFS
 bool updateFS = false;
 #if defined(ENABLE_MQTT) or defined(ENABLE_AMQTT)
